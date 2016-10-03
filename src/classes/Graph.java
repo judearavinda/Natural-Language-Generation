@@ -9,11 +9,57 @@ import java.util.Stack;
 
 public class Graph {
 
+	public class Edge {
+		private Node startNode;
+		private Node endNode;
+		private double probability;
+
+		public Edge(Node startNode, Node endNode, double probability) {
+			this.startNode = startNode;
+			this.endNode = endNode;
+			this.probability = probability;
+		}
+
+		public Node getStartNode() {
+			return startNode;
+		}
+
+		public void setStartNode(Node startNode) {
+			this.startNode = startNode;
+		}
+
+		public Node getEndNode() {
+			return endNode;
+		}
+
+		public void setEndNode(Node endNode) {
+			this.endNode = endNode;
+		}
+
+		public double getProbability() {
+			return probability;
+		}
+
+		public void setProbability(double probability) {
+			this.probability = probability;
+		}
+	}
+
 	public class Node {
 		private String word;
+		private String partofSpeech;
 
-		public Node(String word) {
+		public String getPartofSpeech() {
+			return partofSpeech;
+		}
+
+		public void setPartofSpeech(String partofSpeech) {
+			this.partofSpeech = partofSpeech;
+		}
+
+		public Node(String word, String partofSpeech) {
 			this.word = word;
+			this.partofSpeech = partofSpeech;
 		}
 
 		public String getWord() {
@@ -25,24 +71,26 @@ public class Graph {
 		}
 	}
 
-	private Map<Node, ArrayList<Node>> edges;
+	private Map<Node, ArrayList<Edge>> edges;
 
 	public Graph() {
-		this.edges = new HashMap<Node, ArrayList<Node>>();
+		this.edges = new HashMap<Node, ArrayList<Edge>>();
 	}
 
 	public void addVertex(Node newNode) {
 		// check if already exists
 		if (edges.containsKey(newNode))
 			return;
-		this.edges.put(newNode, new ArrayList<Node>());
+		this.edges.put(newNode, new ArrayList<Edge>());
 	}
 
-	public void addEdge(Node newNode, Node finalNode) {
+	public void addEdge(Node newNode, Node finalNode, double probability) {
 		// check if already exists
 		if (!edges.containsKey(newNode))
-			this.edges.put(newNode, new ArrayList<Node>());
-		this.edges.get(newNode).add(finalNode);
+			addVertex(newNode);
+		if (!edges.containsKey(finalNode))
+			addVertex(finalNode);
+		this.edges.get(newNode).add(new Edge(newNode, finalNode, probability));
 	}
 
 	public void processNode(Node currentNode) {
@@ -60,7 +108,11 @@ public class Graph {
 		while (!queue.isEmpty()) {
 			currentNode = queue.poll();
 			processNode(currentNode);
-			neighbours = this.edges.get(currentNode);
+			neighbours = new ArrayList<Node>();
+			// get neighbours from currentNode
+			for (int i = 0; i < this.edges.get(currentNode).size(); i++) {
+				neighbours.add(this.edges.get(currentNode).get(i).getEndNode());
+			}
 			for (int i = 0; i < neighbours.size(); i++) {
 				currentNeighbour = neighbours.get(i);
 				if (!visitedNodes.contains(currentNeighbour)) {
@@ -74,6 +126,7 @@ public class Graph {
 	public void DepthFirstSearch(Node root) {
 		Stack<Node> s = new Stack<Node>();
 		ArrayList<Node> visitedNodes = new ArrayList<Node>();
+		ArrayList<Node> neighbours;
 		s.push(root);
 		visitedNodes.add(root);
 		Node currentNode;
@@ -82,7 +135,11 @@ public class Graph {
 			currentNode = s.pop();
 			// process the node
 			processNode(currentNode);
-			ArrayList<Node> neighbours = this.edges.get(currentNode);
+			neighbours = new ArrayList<Node>();
+			// get neighbours from currentNode
+			for (int i = 0; i < this.edges.get(currentNode).size(); i++) {
+				neighbours.add(this.edges.get(currentNode).get(i).getEndNode());
+			}
 			for (int i = 0; i < neighbours.size(); i++) {
 				currentNeighbour = neighbours.get(i);
 				if (!visitedNodes.contains(currentNeighbour)) {
@@ -91,5 +148,9 @@ public class Graph {
 				}
 			}
 		}
+	}
+
+	public int size() {
+		return edges.size();
 	}
 }
